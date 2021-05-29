@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using ApprovalTests;
 using ApprovalTests.Core;
 using ApprovalTests.Writers;
+using JsonDiffPatchDotNet;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -37,11 +38,23 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
             _namer = new ExplicitNamer(directory!, $"{className}.{currentTestMethod}");
         }
 
+        /// <summary>
+        ///     Read te response payload, format it as JSON and verify it with the snapshot
+        /// </summary>
+        ///<remarks>
+        ///     If response payload contains dynamic content like Dates ord identifier then you can ignore those parts by providing
+        ///     JSON paths for those elements as <see cref="ignoredPaths"/>.
+        ///     More info about JSON Path syntax can be found here https://github.com/json-path/JsonPath
+        /// </remarks>
         public async Task VerifyHttpResponse(HttpResponseMessage responseMessage, params string[] ignoredPaths)
         {
             await VerifyHttpResponse(_namer, responseMessage, ignoredPaths);
         }
 
+
+        /// <summary>
+        ///     Same as <see cref="VerifyHttpResponse"/> but should be use if there is more than shapshot to approve within a single test
+        /// </summary>
         public async Task VerifyHttpResponseForScenario(string scenario, HttpResponseMessage responseMessage, params string[] ignoredPaths)
         {
             var scenarioNamer = _namer.ForScenario(scenario);
@@ -54,18 +67,37 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
             VerifyJson(namer, payload, ignoredPaths);
         }
 
-        public void VerifyJson(string payload, string[] ignoredPaths)
-        {
-            VerifyJson(_namer, payload, ignoredPaths);
-        }
+        /// <summary>
+        ///     Verify a given JSON payload with a snapshot.
+        /// </summary>
+        ///<remarks>
+        ///     If JSON payload contains dynamic content like Dates ord identifier then you can ignore those parts by providing
+        ///     JSON paths for those elements as <see cref="ignoredPaths"/>.
+        ///     More info about JSON Path syntax can be found here https://github.com/json-path/JsonPath
+        /// </remarks>
+        public void VerifyJson(string payload, string[] ignoredPaths) => VerifyJson(_namer, payload, ignoredPaths);
 
+
+        /// <summary>
+        ///     Same as <see cref="VerifyJson"/> but should be use if there is more than shapshot to approve within a single test
+        /// </summary>
         public void VerifyJsonForScenario(string scenario, string payload, string[] ignoredPaths)
         {
             var scenarioNamer = this._namer.ForScenario(scenario);
             VerifyJson(scenarioNamer, payload, ignoredPaths);
         }
 
-        private  void VerifyJson(IApprovalNamer namer, string payload, string[] ignoredPaths)
+        /// <summary>
+        ///     Calculate the diff between two json payloads and verify it with the snapshot
+        /// </summary>
+        /// <remarks>
+        ///     More details about the JSON DIFF can be found here https://github.com/wbish/jsondiffpatch.net
+        /// </remarks>
+        public void VerifyJsonDiff(string payloadBefore, string payloadAfter) => VerifyJsonDiff(_namer, payloadBefore, payloadAfter);
+
+        /// <summary>
+        ///     Same as <see cref="VerifyJsonDiff"/> but should be use if there is more than shapshot to approve within a single test
+        /// </summary>
         public void VerifyJsonDiffForScenario(string scenario, string payloadBefore, string payloadAfter)
         {
             var scenarioNamer = _namer.ForScenario(scenario);
@@ -95,6 +127,7 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
             {
                 return jsonPayload;
             }
+
             var json = JToken.Parse(jsonPayload);
             foreach (var ignoredPath in ignoredPaths)
             {
