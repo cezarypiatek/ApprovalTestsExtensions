@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="ApprovalTests" Version="5.5.0" />
+    <PackageReference Include="JsonDiffPatch.Net" Version="2.3.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
