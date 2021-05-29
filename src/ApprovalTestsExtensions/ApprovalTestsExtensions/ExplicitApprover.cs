@@ -61,6 +61,25 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
             await VerifyHttpResponse(scenarioNamer, responseMessage, ignoredPaths);
         }
 
+        public async Task VerifyHttpResponseDiff(HttpResponseMessage firstResponseMessage, HttpResponseMessage secondResponseMessage,  params string[] ignoredPaths)
+        {
+            await NewMethod(_namer, firstResponseMessage, secondResponseMessage, ignoredPaths);
+        }
+        
+        public async Task VerifyHttpResponseDiffForScenario(string scenario, HttpResponseMessage firstResponseMessage, HttpResponseMessage secondResponseMessage,  params string[] ignoredPaths)
+        {
+            var namer = _namer.ForScenario(scenario);
+            await NewMethod(namer, firstResponseMessage, secondResponseMessage, ignoredPaths);
+        }
+
+        private async Task NewMethod(IApprovalNamer namer, HttpResponseMessage firstResponseMessage, HttpResponseMessage secondResponseMessage, string[] ignoredPaths)
+        {
+            var firstPayload = await firstResponseMessage.Content.ReadAsStringAsync();
+            var secondPayload = await secondResponseMessage.Content.ReadAsStringAsync();
+            VerifyJsonDiff(namer, firstPayload, secondPayload, ignoredPaths);
+        }
+
+
         private  async Task VerifyHttpResponse(IApprovalNamer namer, HttpResponseMessage responseMessage, params string[] ignoredPaths)
         {
             var payload = await responseMessage.Content.ReadAsStringAsync();

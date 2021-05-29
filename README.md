@@ -21,7 +21,7 @@ Just create an instance of `SmartAnalyzers.ApprovalTestsExtensions.ExplicitAppro
 - `VerifyHttpResponseForScenario` - Same as above but allows to specify scenario name. Helpful when there is more than one snapshot inside a single test.
 - `VerifyJson` - Checking the provided explicitly JSON payload with a saved snapshot.
 - `VerifyJsonForScenario` - Same as above but allows specifying scenario name. Helpful when there is more than one snapshot inside a single test.
-- `VerifyJsonDiff` - Calculate the diff between the provided JSON payloads and checking the result against the saved snapshot. More info about the diff can be found on [jsondiffpatch.net]( https://github.com/wbish/jsondiffpatch.net) project site.
+- `VerifyJsonDiff` - Calculate the diff between the provided JSON payloads and checking the result against the saved snapshot. More info about the diff can be found on [jsondiffpatch.net]( https://github.com/wbish/jsondiffpatch.net) project site. Similar method available for `HttpResponseMessage`.
 
 All those methods allow for ignoring attributes inside the payload by specifying them as `ignoredPaths` in the form of [JsonPath](https://github.com/json-path/JsonPath). This is especially useful when the payload contains dynamically generated data like dates or identifiers.
 
