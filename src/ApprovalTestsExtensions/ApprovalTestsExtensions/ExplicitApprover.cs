@@ -66,6 +66,23 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
         }
 
         private  void VerifyJson(IApprovalNamer namer, string payload, string[] ignoredPaths)
+        public void VerifyJsonDiffForScenario(string scenario, string payloadBefore, string payloadAfter)
+        {
+            var scenarioNamer = _namer.ForScenario(scenario);
+            VerifyJsonDiff(scenarioNamer, payloadBefore, payloadAfter);
+        }
+        
+        private void VerifyJsonDiff(IApprovalNamer namer, string payloadBefore, string payloadAfter)
+        {
+            var jdp = new JsonDiffPatch();
+            var jsonBefore = JToken.Parse(payloadBefore);
+            var jsonAfter = JToken.Parse(payloadAfter);
+            var patch = jdp.Diff(jsonBefore, jsonAfter);
+            var diffPayload = patch.ToString();
+            VerifyJson(namer, diffPayload);
+        }
+
+        private  void VerifyJson(IApprovalNamer namer, string payload, params string[] ignoredPaths)
         {
             var maskedPayload = MaskIgnoredPaths(payload, ignoredPaths);
             var reporter = _selectedAutoApprover ? AutoApprover.INSTANCE : Approvals.GetReporter();
@@ -74,6 +91,10 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
 
         private static string MaskIgnoredPaths(string jsonPayload, params string[] ignoredPaths)
         {
+            if (ignoredPaths.Length == 0)
+            {
+                return jsonPayload;
+            }
             var json = JToken.Parse(jsonPayload);
             foreach (var ignoredPath in ignoredPaths)
             {
