@@ -10,12 +10,28 @@ using Newtonsoft.Json.Linq;
 
 namespace SmartAnalyzers.ApprovalTestsExtensions
 {
+    /// <summary>
+    ///     Main helper class that facilitate usage of ApprovalTests library.
+    /// </summary>
+    /// <remarks>
+    ///     Use this class instead using directly static <see cref="Approvals"/>
+    /// </remarks>
     public class ExplicitApprover
     {
+        private readonly bool _selectedAutoApprover;
         private readonly ExplicitNamer _namer;
 
-        public ExplicitApprover([CallerFilePath]string currentTestFile = "", [CallerMemberName]string currentTestMethod = "")
+        /// <summary>
+        ///     Set this field directly to true and run whole test suite if you want to mark all snapshots as approved
+        /// </summary>
+        /// <remarks>
+        ///     For auto-approving snapshots from a given test, use constructor parameter instead of this field
+        /// </remarks>
+        public static bool UseAutoApprover { get; set; }
+
+        public ExplicitApprover([CallerFilePath]string currentTestFile = "", [CallerMemberName]string currentTestMethod = "", bool? useAutoApprover = false)
         {
+            _selectedAutoApprover = useAutoApprover ?? UseAutoApprover;
             var className = Path.GetFileNameWithoutExtension(currentTestFile);
             var directory = Path.GetDirectoryName(currentTestFile);
             _namer = new ExplicitNamer(directory!, $"{className}.{currentTestMethod}");
@@ -32,7 +48,7 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
             await VerifyHttpResponse(scenarioNamer, responseMessage, ignoredPaths);
         }
 
-        private static async Task VerifyHttpResponse(IApprovalNamer namer, HttpResponseMessage responseMessage, params string[] ignoredPaths)
+        private  async Task VerifyHttpResponse(IApprovalNamer namer, HttpResponseMessage responseMessage, params string[] ignoredPaths)
         {
             var payload = await responseMessage.Content.ReadAsStringAsync();
             VerifyJson(namer, payload, ignoredPaths);
@@ -49,12 +65,12 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
             VerifyJson(scenarioNamer, payload, ignoredPaths);
         }
 
-        private static void VerifyJson(IApprovalNamer namer, string payload, string[] ignoredPaths)
+        private  void VerifyJson(IApprovalNamer namer, string payload, string[] ignoredPaths)
         {
             var maskedPayload = MaskIgnoredPaths(payload, ignoredPaths);
-            Approvals.Verify(WriterFactory.CreateTextWriter(maskedPayload), namer, Approvals.GetReporter());
+            var reporter = _selectedAutoApprover ? AutoApprover.INSTANCE : Approvals.GetReporter();
+            Approvals.Verify(WriterFactory.CreateTextWriter(maskedPayload), namer, reporter);
         }
-
 
         private static string MaskIgnoredPaths(string jsonPayload, params string[] ignoredPaths)
         {
