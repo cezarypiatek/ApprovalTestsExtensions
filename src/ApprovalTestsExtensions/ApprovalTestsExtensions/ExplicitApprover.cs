@@ -30,7 +30,7 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
         /// </remarks>
         public static bool UseAutoApprover { get; set; }
 
-        public ExplicitApprover([CallerFilePath]string currentTestFile = "", [CallerMemberName]string currentTestMethod = "", bool? useAutoApprover = false)
+        public ExplicitApprover([CallerFilePath]string currentTestFile = "", [CallerMemberName]string currentTestMethod = "", bool? useAutoApprover = null)
         {
             _selectedAutoApprover = useAutoApprover ?? UseAutoApprover;
             var className = Path.GetFileNameWithoutExtension(currentTestFile);
@@ -93,25 +93,25 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
         /// <remarks>
         ///     More details about the JSON DIFF can be found here https://github.com/wbish/jsondiffpatch.net
         /// </remarks>
-        public void VerifyJsonDiff(string payloadBefore, string payloadAfter) => VerifyJsonDiff(_namer, payloadBefore, payloadAfter);
+        public void VerifyJsonDiff(string payloadBefore, string payloadAfter, string[] ignoredPaths) => VerifyJsonDiff(_namer, payloadBefore, payloadAfter, ignoredPaths);
 
         /// <summary>
         ///     Same as <see cref="VerifyJsonDiff"/> but should be use if there is more than shapshot to approve within a single test
         /// </summary>
-        public void VerifyJsonDiffForScenario(string scenario, string payloadBefore, string payloadAfter)
+        public void VerifyJsonDiffForScenario(string scenario, string payloadBefore, string payloadAfter, string[] ignoredPaths)
         {
             var scenarioNamer = _namer.ForScenario(scenario);
-            VerifyJsonDiff(scenarioNamer, payloadBefore, payloadAfter);
+            VerifyJsonDiff(scenarioNamer, payloadBefore, payloadAfter, ignoredPaths);
         }
         
-        private void VerifyJsonDiff(IApprovalNamer namer, string payloadBefore, string payloadAfter)
+        private void VerifyJsonDiff(IApprovalNamer namer, string payloadBefore, string payloadAfter, string[] ignoredPaths)
         {
             var jdp = new JsonDiffPatch();
             var jsonBefore = JToken.Parse(payloadBefore);
             var jsonAfter = JToken.Parse(payloadAfter);
             var patch = jdp.Diff(jsonBefore, jsonAfter);
             var diffPayload = patch.ToString();
-            VerifyJson(namer, diffPayload);
+            VerifyJson(namer, diffPayload, ignoredPaths);
         }
 
         private  void VerifyJson(IApprovalNamer namer, string payload, params string[] ignoredPaths)
