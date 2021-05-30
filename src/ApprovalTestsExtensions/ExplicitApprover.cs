@@ -142,11 +142,6 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
 
         private static string MaskIgnoredPaths(string jsonPayload, params string[] ignoredPaths)
         {
-            if (ignoredPaths.Length == 0)
-            {
-                return jsonPayload;
-            }
-
             var json = JToken.Parse(jsonPayload);
             foreach (var ignoredPath in ignoredPaths)
             {
@@ -165,7 +160,7 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
                 }
             }
 
-            return json.ToString(Formatting.None);
+            return json.ToString(Formatting.Indented);
         }
     }
 }
