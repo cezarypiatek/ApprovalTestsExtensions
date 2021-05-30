@@ -29,6 +29,7 @@ jobs:
     - name: Calculate next version
       uses: cezarypiatek/NextVersionGeneratorAction@0.4
       with:
+        patch-pattern: '^Fix'
         minor-pattern: '.*'
         major-pattern: 'BREAKING CHANGES'
         output-to-env-variable: 'Version'    
