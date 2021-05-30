@@ -150,11 +150,11 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
                     switch (token)
                     {
                         case JValue jValue:
-                            jValue.Value = "__IGNORED_VALUE__";
+                            jValue.Value = "_IGNORED_VALUE_";
                             break;
                         case JArray jArray:
                             jArray.Clear();
-                            jArray.Add("__IGNORED_VALUE__");
+                            jArray.Add("_IGNORED_VALUE_");
                             break;
                     }
                 }
