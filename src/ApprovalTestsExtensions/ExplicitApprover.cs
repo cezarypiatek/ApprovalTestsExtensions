@@ -137,7 +137,7 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
         {
             var maskedPayload = MaskIgnoredPaths(payload, ignoredPaths);
             var reporter = _selectedAutoApprover ? AutoApprover.INSTANCE : Approvals.GetReporter();
-            Approvals.Verify(WriterFactory.CreateTextWriter(maskedPayload), namer, reporter);
+            Approvals.Verify(WriterFactory.CreateTextWriter(maskedPayload, "json"), namer, reporter);
         }
 
         private static string MaskIgnoredPaths(string jsonPayload, params string[] ignoredPaths)
