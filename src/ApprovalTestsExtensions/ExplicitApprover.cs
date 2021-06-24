@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -21,6 +22,7 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
     {
         private readonly bool _selectedAutoApprover;
         private readonly ExplicitNamer _namer;
+        private readonly HashSet<string> _snapshotTracker = new HashSet<string>();
 
         /// <summary>
         ///     Set this field directly to true and run whole test suite if you want to mark all snapshots as approved
@@ -135,6 +137,7 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
 
         private  void VerifyJson(IApprovalNamer namer, string payload, params string[] ignoredPaths)
         {
+            EnsureSnapshotNotDuplicated(namer);
             var maskedPayload = MaskIgnoredPaths(payload, ignoredPaths);
             var reporter = _selectedAutoApprover ? AutoApprover.INSTANCE : Approvals.GetReporter();
             Approvals.Verify(WriterFactory.CreateTextWriter(maskedPayload, "json"), namer, reporter);
@@ -161,6 +164,14 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
             }
 
             return json.ToString(Formatting.Indented);
+        }
+        
+        private void EnsureSnapshotNotDuplicated(IApprovalNamer namer)
+        {
+            if (_snapshotTracker.Add(namer.Name) == false)
+            {
+                throw new SnapshotOverriddenException(namer);
+            }
         }
     }
 }

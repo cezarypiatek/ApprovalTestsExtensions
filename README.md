@@ -13,6 +13,8 @@ A set of helper classes that facilitate the usage of [ApprovalTests.NET library]
 
 3. Approvals.Net doesn't have an out-of-the-box mechanism for bulk updates of the existing snapshots. `ApprovalTestsExtensions` provides a custom implementation `IReporterWithApprovalPower` which allows to perform such operation.
 
+4. Calling Approvals multiple times within a single method without scenario name or with the same scenario results with snapshot overrides. This is highly undesirable and quite often caused by copy&paste mistakes. `ApprovalTestsExtensions` tracks snapshot names per instance and prevents overrides by throwing `SnapshotOverriddenException` in such a case.
+
 ## How to use it
 
 Just create an instance of `SmartAnalyzers.ApprovalTestsExtensions.ExplicitApprover` class and start using it for approving your snapshots. The `ExplicitApprover` class offers the following helper methods:
@@ -25,6 +27,7 @@ Just create an instance of `SmartAnalyzers.ApprovalTestsExtensions.ExplicitAppro
 
 All those methods allow for ignoring attributes inside the payload by specifying them as `ignoredPaths` in the form of [JsonPath](https://github.com/json-path/JsonPath). This is especially useful when the payload contains dynamically generated data like dates or identifiers.
 
+**IMPORTANT**: `ExplicitApprover` is memorizing test method name during the constructor invocation so it should be created per every test method. You should not re-use `ExplicitApprover` instance between test methods as it will result in incorrect snapshot names. If you want to extract `ExplicitApprover` instance creation to the method then all constructor parameters should be passed explicitly.
 
 Example test can look as follows:
 
