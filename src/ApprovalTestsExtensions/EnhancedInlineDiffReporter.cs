@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Text;
 using ApprovalTests.Core;
 using DiffPlex;
@@ -11,15 +12,19 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
     public class ContentDifferentThanExpectedException : Exception
     {
         public string Diff { get; }
-        public string Actual { get; }
-        public string Expected { get; }
+        public string ActualContent { get; }
+        public string ExpectedContent { get; }
+        public string ActualFileName { get; }
+        public string ExpectedFileName { get; }
 
-        public ContentDifferentThanExpectedException(string actual, string expected, string diff)
-            : base($"Content is different than expected:{Environment.NewLine}{diff}")
+        public ContentDifferentThanExpectedException(string actualContent, string expectedContent, string actualFileName, string expectedFileName, string diff)
+            : base($"Content of {actualFileName} and {expectedFileName} is different than expected:{Environment.NewLine}{diff}")
         {
             Diff = diff;
-            Actual = actual;
-            Expected = expected;
+            ActualContent = actualContent;
+            ExpectedContent = expectedContent;
+            ActualFileName = actualFileName;
+            ExpectedFileName = expectedFileName;
         }
     }
 
@@ -29,8 +34,10 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
 
         public void Report(string approved, string received)
         {
-            var inlineDiff = GenerateInlineDiff(approved, received);
-            throw new ContentDifferentThanExpectedException(received, approved, inlineDiff);
+            var approvedContent = File.ReadAllText(approved);
+            var receivedContent = File.ReadAllText(received);
+            var inlineDiff = GenerateInlineDiff(approvedContent, receivedContent);
+            throw new ContentDifferentThanExpectedException(receivedContent, approvedContent, received, approved, inlineDiff);
         }
 
         private string GenerateInlineDiff(string expected, string actual)
