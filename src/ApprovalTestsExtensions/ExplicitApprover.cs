@@ -96,13 +96,13 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
         ///     JSON paths for those elements as <see cref="ignoredPaths"/>.
         ///     More info about JSON Path syntax can be found here https://github.com/json-path/JsonPath
         /// </remarks>
-        public void VerifyJson(string payload, string[] ignoredPaths) => VerifyJson(_namer, payload, ignoredPaths);
+        public void VerifyJson(string payload, params string[] ignoredPaths) => VerifyJson(_namer, payload, ignoredPaths);
 
 
         /// <summary>
         ///     Same as <see cref="VerifyJson"/> but should be use if there is more than shapshot to approve within a single test
         /// </summary>
-        public void VerifyJsonForScenario(string scenario, string payload, string[] ignoredPaths)
+        public void VerifyJsonForScenario(string scenario, string payload, params string[] ignoredPaths)
         {
             var scenarioNamer = this._namer.ForScenario(scenario);
             VerifyJson(scenarioNamer, payload, ignoredPaths);
@@ -114,12 +114,12 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
         /// <remarks>
         ///     More details about the JSON DIFF can be found here https://github.com/wbish/jsondiffpatch.net
         /// </remarks>
-        public void VerifyJsonDiff(string payloadBefore, string payloadAfter, string[] ignoredPaths) => VerifyJsonDiff(_namer, payloadBefore, payloadAfter, ignoredPaths);
+        public void VerifyJsonDiff(string payloadBefore, string payloadAfter, params string[] ignoredPaths) => VerifyJsonDiff(_namer, payloadBefore, payloadAfter, ignoredPaths);
 
         /// <summary>
         ///     Same as <see cref="VerifyJsonDiff"/> but should be use if there is more than shapshot to approve within a single test
         /// </summary>
-        public void VerifyJsonDiffForScenario(string scenario, string payloadBefore, string payloadAfter, string[] ignoredPaths)
+        public void VerifyJsonDiffForScenario(string scenario, string payloadBefore, string payloadAfter, params string[] ignoredPaths)
         {
             var scenarioNamer = _namer.ForScenario(scenario);
             VerifyJsonDiff(scenarioNamer, payloadBefore, payloadAfter, ignoredPaths);
