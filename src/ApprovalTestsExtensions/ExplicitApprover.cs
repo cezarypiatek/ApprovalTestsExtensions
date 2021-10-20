@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using ApprovalTests;
+using ApprovalTests.Approvers;
 using ApprovalTests.Core;
 using ApprovalTests.Writers;
 using JsonDiffPatchDotNet;
@@ -20,6 +21,7 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
     /// </remarks>
     public class ExplicitApprover
     {
+        private readonly IApprovalFailureReporter _failureReporter;
         private readonly bool _selectedAutoApprover;
         private readonly ExplicitNamer _namer;
         private readonly HashSet<string> _snapshotTracker = new HashSet<string>();
@@ -32,8 +34,9 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
         /// </remarks>
         public static bool UseAutoApprover { get; set; }
 
-        public ExplicitApprover([CallerFilePath]string currentTestFile = "", [CallerMemberName]string currentTestMethod = "", bool? useAutoApprover = null)
+        public ExplicitApprover([CallerFilePath]string currentTestFile = "", [CallerMemberName]string currentTestMethod = "", bool? useAutoApprover = null, IApprovalFailureReporter? failureReporter = null)
         {
+            _failureReporter = failureReporter ?? Approvals.GetReporter();
             _selectedAutoApprover = useAutoApprover ?? UseAutoApprover;
             var className = Path.GetFileNameWithoutExtension(currentTestFile);
             var directory = Path.GetDirectoryName(currentTestFile);
@@ -135,12 +138,14 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
             VerifyJson(namer, diffPayload, ignoredPaths);
         }
 
-        private  void VerifyJson(IApprovalNamer namer, string payload, params string[] ignoredPaths)
+        private void VerifyJson(IApprovalNamer namer, string payload, params string[] ignoredPaths)
         {
             EnsureSnapshotNotDuplicated(namer);
             var maskedPayload = MaskIgnoredPaths(payload, ignoredPaths);
-            var reporter = _selectedAutoApprover ? AutoApprover.INSTANCE : Approvals.GetReporter();
-            Approvals.Verify(WriterFactory.CreateTextWriter(maskedPayload, "json"), namer, reporter);
+            var reporter = _selectedAutoApprover ? AutoApprover.INSTANCE : _failureReporter;
+            var writer = WriterFactory.CreateTextWriter(maskedPayload, "json");
+            var approver = new FileApprover(writer, namer, true);
+            Approvals.Verify(approver, reporter);
         }
 
         private static string MaskIgnoredPaths(string jsonPayload, params string[] ignoredPaths)
