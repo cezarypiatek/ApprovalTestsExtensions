@@ -72,3 +72,13 @@ public async Task sample_test()
     var approver = new ExplicitApprover(useAutoApprover: true);
 }
 ```
+
+
+## Credits
+
+This project is built upon other great open-source projects:
+
+- https://github.com/approvals/ApprovalTests.Net
+- https://github.com/mmanela/diffplex
+- https://github.com/wbish/jsondiffpatch.net
+- https://github.com/JamesNK/Newtonsoft.Json
