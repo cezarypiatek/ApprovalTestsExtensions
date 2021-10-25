@@ -21,6 +21,7 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
     /// </remarks>
     public class ExplicitApprover
     {
+        private readonly IJsonDiffFormatter _jsonDiffFormatter;
         private readonly IApprovalFailureReporter _failureReporter;
         private readonly bool _selectedAutoApprover;
         private readonly ExplicitNamer _namer;
@@ -34,9 +35,10 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
         /// </remarks>
         public static bool UseAutoApprover { get; set; }
 
-        public ExplicitApprover([CallerFilePath]string currentTestFile = "", [CallerMemberName]string currentTestMethod = "", bool? useAutoApprover = null, IApprovalFailureReporter? failureReporter = null)
+        public ExplicitApprover([CallerFilePath]string currentTestFile = "", [CallerMemberName]string currentTestMethod = "", bool? useAutoApprover = null, IApprovalFailureReporter? failureReporter = null, IJsonDiffFormatter? jsonDiffFormatter = null)
         {
             _failureReporter = failureReporter ?? Approvals.GetReporter();
+            _jsonDiffFormatter = jsonDiffFormatter ?? new DefaultJsonDiffFormatter();
             _selectedAutoApprover = useAutoApprover ?? UseAutoApprover;
             var className = Path.GetFileNameWithoutExtension(currentTestFile);
             var directory = Path.GetDirectoryName(currentTestFile);
@@ -133,8 +135,8 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
             var jdp = new JsonDiffPatch();
             var jsonBefore = JToken.Parse(payloadBefore);
             var jsonAfter = JToken.Parse(payloadAfter);
-            var patch = jdp.Diff(jsonBefore, jsonAfter);
-            var diffPayload = patch.ToString();
+            var diff = jdp.Diff(jsonBefore, jsonAfter);
+            var diffPayload = _jsonDiffFormatter.Format(diff);
             VerifyJson(namer, diffPayload, ignoredPaths);
         }
 
