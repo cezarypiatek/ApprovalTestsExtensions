@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ApprovalTests;
 using ApprovalTests.Approvers;
 using ApprovalTests.Core;
+using ApprovalTests.Reporters;
 using ApprovalTests.Writers;
 using JsonDiffPatchDotNet;
 using Newtonsoft.Json;
@@ -37,8 +38,8 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
 
         public ExplicitApprover([CallerFilePath]string currentTestFile = "", [CallerMemberName]string currentTestMethod = "", bool? useAutoApprover = null, IApprovalFailureReporter? failureReporter = null, IJsonDiffFormatter? jsonDiffFormatter = null)
         {
-            _failureReporter = failureReporter ?? Approvals.GetReporter();
             _jsonDiffFormatter = jsonDiffFormatter ?? new DefaultJsonDiffFormatter();
+            _failureReporter = failureReporter ?? new FirstWorkingReporter(new BuildServerReporter(new EnhancedInlineDiffReporter()), new DiffReporter());
             _selectedAutoApprover = useAutoApprover ?? UseAutoApprover;
             var className = Path.GetFileNameWithoutExtension(currentTestFile);
             var directory = Path.GetDirectoryName(currentTestFile);
