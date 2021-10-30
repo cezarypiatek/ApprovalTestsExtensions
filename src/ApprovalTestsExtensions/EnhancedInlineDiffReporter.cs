@@ -18,7 +18,7 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
         public string ExpectedFileName { get; }
 
         public ContentDifferentThanExpectedException(string actualContent, string expectedContent, string actualFileName, string expectedFileName, string diff)
-            : base($"Content of {actualFileName} and {expectedFileName} is different than expected:{Environment.NewLine}{diff}")
+            : base(ComposeErrorMessage(actualFileName, expectedFileName, diff))
         {
             Diff = diff;
             ActualContent = actualContent;
@@ -26,8 +26,38 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
             ActualFileName = actualFileName;
             ExpectedFileName = expectedFileName;
         }
+
+        private static string ComposeErrorMessage(string actualFilePath, string expectedFilePath, string diff)
+        {
+            var messageBuilder = new StringBuilder();
+
+            var actualFileDirectory = Path.GetDirectoryName(actualFilePath);
+            var expectedFileDirectory = Path.GetDirectoryName(expectedFilePath);
+
+            if (string.Equals(actualFileDirectory, expectedFileDirectory, StringComparison.OrdinalIgnoreCase))
+            {
+                var actualFileName = Path.GetFileName(actualFilePath);
+                var expectedFileName = Path.GetFileName(expectedFilePath);
+                messageBuilder.AppendLine($"Content of the following files in directory '{actualFileDirectory}' is different than expected:");
+                messageBuilder.AppendLine($"- Approved file: {expectedFileName}");
+                messageBuilder.AppendLine($"- Received file: {actualFileName}");
+            }
+            else
+            {
+                messageBuilder.AppendLine($"Content of the following files is different than expected:");
+                messageBuilder.AppendLine($"- Approved file: {actualFilePath}");
+                messageBuilder.AppendLine($"- Received file: {expectedFilePath}");
+            }
+
+            messageBuilder.AppendLine("All changes listed below:");
+            messageBuilder.AppendLine(diff);
+            return messageBuilder.ToString();
+        }
     }
 
+    /// <summary>
+    ///     Produce git-like textual diff summary
+    /// </summary>
     public class EnhancedInlineDiffReporter: IEnvironmentAwareReporter
     {
         public bool ShowWhitespaces { get; set; }
