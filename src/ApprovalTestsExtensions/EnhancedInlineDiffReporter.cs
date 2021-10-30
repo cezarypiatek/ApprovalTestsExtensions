@@ -28,7 +28,7 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
         }
     }
 
-    public class EnhancedInlineDiffReporter: IApprovalFailureReporter
+    public class EnhancedInlineDiffReporter: IEnvironmentAwareReporter
     {
         public bool ShowWhitespaces { get; set; }
 
@@ -39,6 +39,8 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
             var inlineDiff = GenerateInlineDiff(approvedContent, receivedContent);
             throw new ContentDifferentThanExpectedException(receivedContent, approvedContent, received, approved, inlineDiff);
         }
+
+        public bool IsWorkingInThisEnvironment(string forFile) => true;
 
         private string GenerateInlineDiff(string expected, string actual)
         {
