@@ -3,6 +3,9 @@ using ApprovalTests.Reporters;
 
 namespace SmartAnalyzers.ApprovalTestsExtensions
 {
+    /// <summary>
+    ///     This reporter serves as a decorator for underlying reporter allowing to run it only in Build Server environment
+    /// </summary>
     public class BuildServerReporter: IEnvironmentAwareReporter
     {
         private readonly IApprovalFailureReporter _failureReporter;
