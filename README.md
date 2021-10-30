@@ -15,6 +15,44 @@ A set of helper classes that facilitate the usage of [ApprovalTests.NET library]
 
 4. Calling Approvals multiple times within a single method without scenario name or with the same scenario results with snapshot overrides. This is highly undesirable and quite often caused by copy&paste mistakes. `ApprovalTestsExtensions` tracks snapshot names per instance and prevents overrides by throwing `SnapshotOverriddenException` in such a case.
 
+5. IMHO the mechanism of defining reporters is unnecessarily complicated and sometimes might result in a time-consuming investigation of why the selected reporter is not used, especially in the build server environment or when using async lambdas. `ExplicitApprover` allows for specifying reporters explicitly during the instantiation. This library provides `BuildServerReporter` which serves as a decorator for the underlying reporter allowing to run it only in the Build Server environment. There's also `EnhancedInlineDiffReporter` which produces rich, git-like, inline diff reports - very useful for reporting differences in CI. By default, `ExplicitApprover` uses the following reporter setup: 
+
+    ```cs
+    new FirstWorkingReporter
+    (
+            new BuildServerReporter(new EnhancedInlineDiffReporter()), 
+            new DiffReporter()
+    )
+    ```
+
+    > **IMPORTANT:** The `ExplicitApprover` is completely ignoring everything what is configured with `[UseReporter]` and `[FrontLoadedReporter]`. The reporter needs to be explicitly passed to the constructor, otherwise it fallbacks to the default setup presented above.
+
+    You can achieve the same result without using `ExplicitApprover` in the following way:
+
+    ```cs
+    [assembly: FrontLoadedReporter(typeof(MyTestReporter))]
+
+
+    public class MyTestReporter: IEnvironmentAwareReporter
+    {
+        private readonly FirstWorkingReporter _underlyingReporter;
+
+        public MyTestReporter()
+        {
+            _underlyingReporter = new FirstWorkingReporter
+            (
+                new BuildServerReporter(new EnhancedInlineDiffReporter()), 
+                new DiffReporter()
+            );
+        }
+
+        public void Report(string approved, string received) => _underlyingReporter.Report(approved, received);
+
+        public bool IsWorkingInThisEnvironment(string forFile) => true;
+    }
+    ```
+
+    
 ## How to use it
 
 Just create an instance of `SmartAnalyzers.ApprovalTestsExtensions.ExplicitApprover` class and start using it for approving your snapshots. The `ExplicitApprover` class offers the following helper methods:
