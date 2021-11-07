@@ -5,7 +5,7 @@
     <AssemblyName>SmartAnalyzers.ApprovalTestsExtensions</AssemblyName>
     <RootNamespace>SmartAnalyzers.ApprovalTestsExtensions</RootNamespace>
     <Nullable>enable</Nullable>
-    <LangVersion>8</LangVersion>
+    <LangVersion>9</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>

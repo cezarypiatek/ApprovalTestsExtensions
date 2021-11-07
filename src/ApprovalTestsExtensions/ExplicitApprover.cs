@@ -39,7 +39,7 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
         public ExplicitApprover([CallerFilePath]string currentTestFile = "", [CallerMemberName]string currentTestMethod = "", bool? useAutoApprover = null, IApprovalFailureReporter? failureReporter = null, IJsonDiffFormatter? jsonDiffFormatter = null)
         {
             _jsonDiffFormatter = jsonDiffFormatter ?? new DefaultJsonDiffFormatter();
-            _failureReporter = failureReporter ?? new FirstWorkingReporter(new BuildServerReporter(new EnhancedInlineDiffReporter()), new DiffReporter());
+            _failureReporter = failureReporter ?? new FirstWorkingReporter(new BuildServerReporter(new EnhancedInlineDiffReporter()), new ContextAwareDiffToolReporter(), new DiffReporter());
             _selectedAutoApprover = useAutoApprover ?? UseAutoApprover;
             var className = Path.GetFileNameWithoutExtension(currentTestFile);
             var directory = Path.GetDirectoryName(currentTestFile);
