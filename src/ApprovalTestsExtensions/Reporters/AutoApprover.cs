@@ -11,8 +11,8 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
     {
         public static readonly AutoApprover INSTANCE = new AutoApprover();
 
-        private string approved;
-        private string received;
+        private string? approved;
+        private string? received;
 
         public void Report(string approved, string received)
         {
