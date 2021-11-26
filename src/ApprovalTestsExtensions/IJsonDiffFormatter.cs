@@ -7,6 +7,6 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
     /// </summary>
     public interface IJsonDiffFormatter
     {
-        string Format(JToken diff);
+        string Format(JToken? diff);
     }
 }
