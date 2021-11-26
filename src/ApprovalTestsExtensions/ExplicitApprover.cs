@@ -151,8 +151,13 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
             Approvals.Verify(approver, reporter);
         }
 
-        private static string MaskIgnoredPaths(string jsonPayload, params string[] ignoredPaths)
+        private static string MaskIgnoredPaths(string? jsonPayload, params string[] ignoredPaths)
         {
+            if(ignoredPaths == null || ignoredPaths.Length == 0 || string.IsNullOrWhiteSpace(jsonPayload))
+            {
+                return jsonPayload;
+            }
+
             var json = JToken.Parse(jsonPayload);
             foreach (var ignoredPath in ignoredPaths)
             {
