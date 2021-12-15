@@ -26,8 +26,8 @@ jobs:
     - name: Calculate next version
       uses: cezarypiatek/NextVersionGeneratorAction@0.4
       with:
-        patch-pattern: '^Fix'
-        minor-pattern: '.*'
+        patch-pattern: '.*'
+        minor-pattern: '^(?!(Fix|Tech))/i'
         major-pattern: 'BREAKING CHANGES'
         output-to-env-variable: 'VersionPrefix'    
     - name: Materialize Signing Key
