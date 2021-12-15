@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
@@ -28,6 +29,10 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
         private readonly ExplicitNamer _namer;
         private readonly HashSet<string> _snapshotTracker = new HashSet<string>();
 
+
+        public static Func<IApprovalFailureReporter> DefaultFailureReporterFactory = () =>
+            new FirstWorkingReporter(new BuildServerReporter(new EnhancedInlineDiffReporter()), new ContextAwareDiffToolReporter(), new DiffReporter());
+
         /// <summary>
         ///     Set this field directly to true and run whole test suite if you want to mark all snapshots as approved
         /// </summary>
@@ -39,7 +44,7 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
         public ExplicitApprover([CallerFilePath]string currentTestFile = "", [CallerMemberName]string currentTestMethod = "", bool? useAutoApprover = null, IApprovalFailureReporter? failureReporter = null, IJsonDiffFormatter? jsonDiffFormatter = null)
         {
             _jsonDiffFormatter = jsonDiffFormatter ?? new DefaultJsonDiffFormatter();
-            _failureReporter = failureReporter ?? new FirstWorkingReporter(new BuildServerReporter(new EnhancedInlineDiffReporter()), new ContextAwareDiffToolReporter(), new DiffReporter());
+            _failureReporter = failureReporter ?? DefaultFailureReporterFactory.Invoke();
             _selectedAutoApprover = useAutoApprover ?? UseAutoApprover;
             var className = Path.GetFileNameWithoutExtension(currentTestFile);
             var directory = Path.GetDirectoryName(currentTestFile);
