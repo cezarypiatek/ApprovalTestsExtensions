@@ -178,35 +178,37 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
 
         private static string MaskIgnoredPaths(string? jsonPayload, params string[] ignoredPaths)
         {
-            if(ignoredPaths == null || ignoredPaths.Length == 0 || string.IsNullOrWhiteSpace(jsonPayload))
+            if (string.IsNullOrWhiteSpace(jsonPayload))
             {
-                return jsonPayload;
+                return string.Empty;
             }
-            
+
             var json = JToken.Parse(jsonPayload);
-            foreach (var ignoredPath in ignoredPaths)
+            if (ignoredPaths is { Length: > 0 })
             {
-                foreach (var token in json.SelectTokens(ignoredPath))
+                foreach (var ignoredPath in ignoredPaths)
                 {
-                    switch (token)
+                    foreach (var token in json.SelectTokens(ignoredPath))
                     {
-                        case JValue jValue:
-                            jValue.Value = "_IGNORED_VALUE_";
-                            break;
-                        case JArray jArray:
-                            jArray.Clear();
-                            jArray.Add("_IGNORED_VALUE_");
-                            break;
-                        case JObject jObject:
-                            jObject.Replace(new JValue("_IGNORED_VALUE_"));
-                            break;
+                        switch (token)
+                        {
+                            case JValue jValue:
+                                jValue.Value = "_IGNORED_VALUE_";
+                                break;
+                            case JArray jArray:
+                                jArray.Clear();
+                                jArray.Add("_IGNORED_VALUE_");
+                                break;
+                            case JObject jObject:
+                                jObject.Replace(new JValue("_IGNORED_VALUE_"));
+                                break;
+                        }
                     }
                 }
             }
-
             return json.ToString(Formatting.Indented);
         }
-        
+
         private void EnsureSnapshotNotDuplicated(IApprovalNamer namer)
         {
             if (_snapshotTracker.Add(namer.Name) == false)
