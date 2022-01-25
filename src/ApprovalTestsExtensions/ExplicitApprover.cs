@@ -182,7 +182,7 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
             {
                 return jsonPayload;
             }
-
+            
             var json = JToken.Parse(jsonPayload);
             foreach (var ignoredPath in ignoredPaths)
             {
@@ -196,6 +196,9 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
                         case JArray jArray:
                             jArray.Clear();
                             jArray.Add("_IGNORED_VALUE_");
+                            break;
+                        case JObject jObject:
+                            jObject.Replace(new JValue("_IGNORED_VALUE_"));
                             break;
                     }
                 }
