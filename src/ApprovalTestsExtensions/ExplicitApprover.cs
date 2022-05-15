@@ -29,6 +29,7 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
         private readonly ExplicitNamer _namer;
         private readonly HashSet<string> _snapshotTracker = new HashSet<string>();
 
+        public static IJsonSerializer Serializer = new NewtonsoftJsonSerializer();
 
         public static Func<IApprovalFailureReporter> DefaultFailureReporterFactory = () =>
             new FirstWorkingReporter(new BuildServerReporter(new EnhancedInlineDiffReporter()), new ContextAwareDiffToolReporter(), new DiffReporter());
@@ -118,7 +119,7 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
             var scenarioNamer = this._namer.ForScenario(scenario);
             VerifyJson(scenarioNamer, payload, ignoredPaths);
         }
-        
+
         /// <summary>
         ///     Serialize provided object to JSON and verify with a snapshot.
         /// </summary>
@@ -127,17 +128,19 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
         ///     JSON paths for those elements as <see cref="ignoredPaths"/>.
         ///     More info about JSON Path syntax can be found here https://github.com/json-path/JsonPath
         /// </remarks>
-        public void VerifyObject(object data, params string[] ignoredPaths) => VerifyJson(_namer, JsonConvert.SerializeObject(data), ignoredPaths);
+        public void VerifyObject(object? data, params string[] ignoredPaths) => VerifyJson(_namer, SerializeObject(data), ignoredPaths);
 
 
         /// <summary>
         ///     Same as <see cref="VerifyObject"/> but should be use if there is more than shapshot to approve within a single test
         /// </summary>
-        public void VerifyObjectForScenario(string scenario, object data, params string[] ignoredPaths)
+        public void VerifyObjectForScenario(string scenario, object? data, params string[] ignoredPaths)
         {
             var scenarioNamer = this._namer.ForScenario(scenario);
-            VerifyJson(scenarioNamer, JsonConvert.SerializeObject(data), ignoredPaths);
+            VerifyJson(scenarioNamer, SerializeObject(data), ignoredPaths);
         }
+
+        private string SerializeObject(object? data) => Serializer.Serialize(data);
 
         /// <summary>
         ///     Calculate the diff between two json payloads and verify it with the snapshot
