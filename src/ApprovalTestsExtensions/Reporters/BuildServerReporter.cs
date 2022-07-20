@@ -1,4 +1,5 @@
-﻿using ApprovalTests.Core;
+﻿using System;
+using ApprovalTests.Core;
 using ApprovalTests.Reporters;
 
 namespace SmartAnalyzers.ApprovalTestsExtensions
@@ -18,6 +19,9 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
 
         public void Report(string approved, string received) => _failureReporter.Report(approved, received);
 
-        public bool IsWorkingInThisEnvironment(string forFile) => _isBuildServerEnvironment ??= DefaultFrontLoaderReporter.INSTANCE.IsWorkingInThisEnvironment(forFile);
+        public bool IsWorkingInThisEnvironment(string forFile) => _isBuildServerEnvironment ??= IsTeamCity() || DefaultFrontLoaderReporter.INSTANCE.IsWorkingInThisEnvironment(forFile);
+
+        // INFO: https://github.com/JetBrains/TeamCity.VSTest.TestAdapter/issues/43
+        private static bool IsTeamCity() => Environment.GetEnvironmentVariable("TEAMCITY_VERSION") != null;
     }
 }
