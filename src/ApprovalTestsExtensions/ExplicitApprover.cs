@@ -158,7 +158,32 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
             var scenarioNamer = _namer.ForScenario(scenario);
             VerifyJsonDiff(scenarioNamer, payloadBefore, payloadAfter, ignoredPaths);
         }
-        
+
+        /// <summary>
+        ///     Verify a given text payload with a snapshot.
+        /// </summary>
+        /// <param name="text">Payload to verify</param>
+        /// <param name="extension">File extension used for storing snapshot. Useful to present payload in suitable diff tool</param>
+        /// <param name="scrubber">Function to customize payload before verifying it. Useful for removing dynamic content</param>
+        public void VerifyText(string text, string extension = "txt", Func<string, string>? scrubber = null)
+        {
+            VerifyText(_namer, text, extension, scrubber);
+        }
+
+        /// <summary>
+        ///     Verify a given text payload with a snapshot.
+        /// </summary>
+        /// <param name="scenario">Scenario title</param>
+        /// <param name="text">Payload to verify</param>
+        /// <param name="extension">File extension used for storing snapshot. Useful to present payload in suitable diff tool</param>
+        /// <param name="scrubber">Function to customize payload before verifying it. Useful for removing dynamic content</param>
+        public void VerifyTextForScenario(string scenario, string text, string extension = "txt", Func<string, string>? scrubber = null)
+        {
+            var scenarioNamer = _namer.ForScenario(scenario);
+            VerifyText(scenarioNamer, text, extension, scrubber);
+        }
+
+
         private void VerifyJsonDiff(IApprovalNamer namer, string payloadBefore, string payloadAfter, string[] ignoredPaths)
         {
             var jdp = new JsonDiffPatch();
@@ -171,10 +196,15 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
 
         private void VerifyJson(IApprovalNamer namer, string payload, params string[] ignoredPaths)
         {
+            VerifyText(namer, payload, "json", s => MaskIgnoredPaths(s, ignoredPaths));
+        }
+
+        private void VerifyText(IApprovalNamer namer, string text, string extension = "txt", Func<string, string>? scrubber = null)
+        {
             EnsureSnapshotNotDuplicated(namer);
-            var maskedPayload = MaskIgnoredPaths(payload, ignoredPaths);
             var reporter = _selectedAutoApprover ? AutoApprover.INSTANCE : _failureReporter;
-            var writer = WriterFactory.CreateTextWriter(maskedPayload, "json");
+            var textToApprove = scrubber != null? scrubber(text): text;
+            var writer = WriterFactory.CreateTextWriter(textToApprove, extension);
             var approver = new FileApprover(writer, namer, true);
             Approvals.Verify(approver, reporter);
         }
