@@ -13,7 +13,10 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
 
         public NewtonsoftJsonSerializer(JsonSerializerSettings? settings = null)
         {
-            _settings = settings;
+            _settings = settings ?? new JsonSerializerSettings()
+            {
+                Formatting = Formatting.Indented
+            };
         }
 
         public string Serialize(object? data)
