@@ -140,6 +140,32 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
             VerifyJson(scenarioNamer, SerializeObject(data), ignoredPaths);
         }
 
+        /// <summary>
+        ///      Calculate the diff between two objects and verify it with the snapshot
+        /// </summary>
+        ///<remarks>
+        ///     If object contains dynamic content like Dates or identifier then you can ignore those parts by providing
+        ///     JSON paths for those elements as <see cref="ignoredPaths"/>.
+        ///     More info about JSON Path syntax can be found here https://github.com/json-path/JsonPath
+        /// </remarks>
+        public void VerifyObjectDiff(object? dataBefore, object? dataAfter, params string[] ignoredPaths)
+        {
+            var payloadBefore = SerializeObject(dataBefore);
+            var payloadAfter = SerializeObject(dataAfter);
+            VerifyJsonDiff(payloadBefore, payloadAfter, ignoredPaths);
+        }
+
+
+        /// <summary>
+        ///     Same as <see cref="VerifyObjectDiff"/> but should be use if there is more than shapshot to approve within a single test
+        /// </summary>
+        public void VerifyObjectDiffForScenario(string scenario, object? dataBefore, object? dataAfter, params string[] ignoredPaths)
+        {
+            var payloadBefore = SerializeObject(dataBefore);
+            var payloadAfter = SerializeObject(dataAfter);
+            VerifyJsonDiffForScenario(scenario, payloadBefore, payloadAfter, ignoredPaths);
+        }
+
         private string SerializeObject(object? data) => Serializer.Serialize(data);
 
         /// <summary>
