@@ -42,14 +42,14 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
         /// </remarks>
         public static bool UseAutoApprover { get; set; }
 
-        public ExplicitApprover([CallerFilePath]string currentTestFile = "", [CallerMemberName]string currentTestMethod = "", bool? useAutoApprover = null, IApprovalFailureReporter? failureReporter = null, IJsonDiffFormatter? jsonDiffFormatter = null)
+        public ExplicitApprover([CallerFilePath]string currentTestFile = "", [CallerMemberName]string currentTestMethod = "", bool? useAutoApprover = null, IApprovalFailureReporter? failureReporter = null, IJsonDiffFormatter? jsonDiffFormatter = null, string? testCase = null)
         {
             _jsonDiffFormatter = jsonDiffFormatter ?? new DefaultJsonDiffFormatter();
             _failureReporter = failureReporter ?? DefaultFailureReporterFactory.Invoke();
             _selectedAutoApprover = useAutoApprover ?? UseAutoApprover;
             var className = Path.GetFileNameWithoutExtension(currentTestFile);
             var directory = Path.GetDirectoryName(currentTestFile);
-            _namer = new ExplicitNamer(directory!, $"{className}.{currentTestMethod}");
+            _namer = new ExplicitNamer(directory!, string.IsNullOrWhiteSpace(testCase) ? $"{className}.{currentTestMethod}" : $"{className}.{currentTestMethod}.{testCase}");
         }
 
         /// <summary>
