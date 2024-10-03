@@ -5,7 +5,7 @@ on:
 jobs:
   build-extension:
     runs-on: windows-latest
-    env: 
+    env:
         DOTNET_NOLOGO: true
         DOTNET_CLI_TELEMETRY_OPTOUT: true
         RepositoryUrl: 'https://github.com/${{ github.repository }}'
@@ -18,18 +18,18 @@ jobs:
         PackageReleaseNotes: 'https://github.com/${{ github.repository }}/releases'
         ContinuousIntegrationBuild: true
     steps:
-    - uses: actions/checkout@v2   
+    - uses: actions/checkout@v2
     - name: Setup .NET Core 5
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: '5.0'   
+        dotnet-version: '5.0'
     - name: Calculate next version
       uses: cezarypiatek/NextVersionGeneratorAction@0.4
       with:
         patch-pattern: '.*'
         minor-pattern: '^(?!(Fix|Tech))'
         major-pattern: 'BREAKING CHANGES'
-        output-to-env-variable: 'VersionPrefix'    
+        output-to-env-variable: 'VersionPrefix'
     - name: Materialize Signing Key
       id: write_sign_key_file
       uses: timheuer/base64-to-file@v1
@@ -39,14 +39,10 @@ jobs:
     - name: Restore dependencies
       run: |
         dotnet nuget locals all --clear
-        dotnet restore $env:SolutionPath         
+        dotnet restore $env:SolutionPath
     - name: Build extension
-      run: dotnet build $env:SolutionPath 
+      run: dotnet build $env:SolutionPath
       env:
         SignAssembly: true
-        AssemblyOriginatorKeyFile: ${{ steps.write_sign_key_file.outputs.filePath }}     
-    - name: Collect artifacts - nugets
-      uses: actions/upload-artifact@v2
-      with:
-        name: ApprovalTestsExtensions-Nugets
-        path: '**/SmartAnalyzers.ApprovalTestsExtensions*.nupkg'
+        AssemblyOriginatorKeyFile: ${{ steps.write_sign_key_file.outputs.filePath }}
+
