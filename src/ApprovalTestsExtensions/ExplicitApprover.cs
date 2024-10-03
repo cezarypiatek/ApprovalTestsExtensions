@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ApprovalTests;
 using ApprovalTests.Approvers;
@@ -30,6 +31,7 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
         private readonly HashSet<string> _snapshotTracker = new HashSet<string>();
 
         public static IJsonSerializer Serializer = new NewtonsoftJsonSerializer();
+        public static IScrubber? Scrubber;
 
         public static Func<IApprovalFailureReporter> DefaultFailureReporterFactory = () =>
             new FirstWorkingReporter(new BuildServerReporter(new EnhancedInlineDiffReporter()), new ContextAwareDiffToolReporter(), new DiffReporter());
@@ -193,7 +195,7 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
         /// <param name="scrubber">Function to customize payload before verifying it. Useful for removing dynamic content</param>
         public void VerifyText(string text, string extension = "txt", Func<string, string>? scrubber = null)
         {
-            VerifyText(_namer, text, extension, scrubber);
+            VerifyText(_namer, text, extension, scrubber != null ? new InlineScrubber(scrubber) : null);
         }
 
         /// <summary>
@@ -206,7 +208,7 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
         public void VerifyTextForScenario(string scenario, string text, string extension = "txt", Func<string, string>? scrubber = null)
         {
             var scenarioNamer = _namer.ForScenario(scenario);
-            VerifyText(scenarioNamer, text, extension, scrubber);
+            VerifyText(scenarioNamer, text, extension, scrubber != null ? new InlineScrubber(scrubber) : null);
         }
 
 
@@ -222,50 +224,18 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
 
         private void VerifyJson(IApprovalNamer namer, string payload, params string[] ignoredPaths)
         {
-            VerifyText(namer, payload, "json", s => MaskIgnoredPaths(s, ignoredPaths));
+            VerifyText(namer, payload, "json", new JsonPathScrubber(ignoredPaths));
         }
 
-        private void VerifyText(IApprovalNamer namer, string text, string extension = "txt", Func<string, string>? scrubber = null)
+        private void VerifyText(IApprovalNamer namer, string text, string extension = "txt", IScrubber? scrubber = null)
         {
             EnsureSnapshotNotDuplicated(namer);
             var reporter = _selectedAutoApprover ? AutoApprover.INSTANCE : _failureReporter;
-            var textToApprove = scrubber != null? scrubber(text): text;
+            var composedScrubber = new ComposedScrubber(scrubber, Scrubber);
+            var textToApprove = composedScrubber.Scrub(text);
             var writer = WriterFactory.CreateTextWriter(textToApprove, extension);
             var approver = new FileApprover(writer, namer, true);
             Approvals.Verify(approver, reporter);
-        }
-
-        private static string MaskIgnoredPaths(string? jsonPayload, params string[] ignoredPaths)
-        {
-            if (string.IsNullOrWhiteSpace(jsonPayload))
-            {
-                return string.Empty;
-            }
-
-            var json = JToken.Parse(jsonPayload);
-            if (ignoredPaths is { Length: > 0 })
-            {
-                foreach (var ignoredPath in ignoredPaths)
-                {
-                    foreach (var token in json.SelectTokens(ignoredPath))
-                    {
-                        switch (token)
-                        {
-                            case JValue jValue:
-                                jValue.Value = "_IGNORED_VALUE_";
-                                break;
-                            case JArray jArray:
-                                jArray.Clear();
-                                jArray.Add("_IGNORED_VALUE_");
-                                break;
-                            case JObject jObject:
-                                jObject.Replace(new JValue("_IGNORED_VALUE_"));
-                                break;
-                        }
-                    }
-                }
-            }
-            return json.ToString(Formatting.Indented);
         }
 
         private void EnsureSnapshotNotDuplicated(IApprovalNamer namer)
