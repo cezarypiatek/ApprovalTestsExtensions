@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
 using ApprovalTests.Core;
 
@@ -11,8 +12,8 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
     {
         public static readonly AutoApprover INSTANCE = new AutoApprover();
 
-        private string? approved;
-        private string? received;
+        private string approved;
+        private string received;
 
         public void Report(string approved, string received)
         {
@@ -23,6 +24,10 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
 
         public bool ApprovedWhenReported()
         {
+            if(IsCiEnvironment())
+            {
+                throw new InvalidOperationException("Cannot run AutoApprover in CI environment");
+            }
             if (!File.Exists(this.received)) return false;
             File.Delete(this.approved);
             if (File.Exists(this.approved)) return false;
@@ -30,6 +35,12 @@ namespace SmartAnalyzers.ApprovalTestsExtensions
             if (!File.Exists(this.approved)) return false;
 
             return true;
+        }
+
+        private bool IsCiEnvironment()
+        {
+            return !string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("CI")) ||
+                   !string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("TEAMCITY_VERSION"));
         }
     }
 }
